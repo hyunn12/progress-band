@@ -90,6 +90,17 @@ export const register: Register = on => {
     return { result: `shown ${list.length} steps` }
   }).catch(() => ({ deny: 'progress-band: could not update the strip' }))
 
+  on('turn.complete', async ($, e, next) => {
+    const result = await next(e)
+    if (e.agentId) {
+      const agent = (await $.agent.list()).find(a => a.id === e.agentId)
+      const name = agent?.description || agent?.type || 'subagent'
+      const sec = Math.round(e.durationMs / 1000)
+      $.ui.toast(`${e.isAborted ? '✗' : '✓'} ${name} 완료 · ${sec < 60 ? `${sec}s` : `${Math.round(sec / 60)}m`}`)
+    }
+    return result
+  })
+
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     const list = await read($, steps)
     if (e.props.hasSurvey || list.length === 0) {
