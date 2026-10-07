@@ -6,6 +6,7 @@ import type { Step } from '../types'
 const steps = atom({ plugin: 'progress-band', key: 'steps' } as const, [] as Step[])
 const since = atom({ plugin: 'progress-band', key: 'since' } as const, {} as Record<string, number>)
 const tick = atom({ plugin: 'progress-band', key: 'tick' } as const, 0)
+const lastAgent = atom({ plugin: 'progress-band', key: 'lastAgent' } as const, null as string | null)
 
 const MARK = {
   done: { icon: '✓', color: 'green' },
@@ -102,19 +103,29 @@ export const register: Register = on => {
       const line = `${e.isAborted ? '✗' : '✓'} ${name} 완료 · ${sec < 60 ? `${sec}s` : `${Math.round(sec / 60)}m`}`
       $.ui.toast(line)
       $.ui.log(line)
+      await update($, lastAgent, () => line)
     }
     return result
   })
 
+  // Background-task notifications also arrive as prompts; only the person's own message clears the line.
+  on('prompt.submit', async ($, e, next) => {
+    const kind = (e as { origin?: { kind?: string } }).origin?.kind
+    if (kind === 'composer' || kind === 'bridge') await update($, lastAgent, () => null)
+    return next(e)
+  })
+
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     const list = await read($, steps)
-    if (e.props.hasSurvey || list.length === 0) {
+    const agent = await read($, lastAgent)
+    if (e.props.hasSurvey || (list.length === 0 && !agent)) {
       return next(e)
     }
     const start = await read($, since)
     const now = await read($, tick)
     const done = list.filter(s => s.state === 'done').length
-    const tail = `  ${done}/${list.length}`
+    const count = list.length ? `  ${done}/${list.length}` : ''
+    const tail = agent ? `${count}${list.length ? ' · ' : ''}${agent}` : count
     let segments = full(list, start, now)
     const fits = (segs: Segment[]) =>
       segs.reduce((n, s) => n + width(s.link + s.text), width(tail)) <= e.props.bodyColumns
