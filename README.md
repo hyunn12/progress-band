@@ -1,0 +1,40 @@
+# progress-band
+
+Claude Code 세션의 작업 단계를 입력창 바로 위에 한 줄로 띄우는 mod 입니다.
+
+```
+✓ 설계 ─ ● 구현 ┄ ○ 테스트 ┄ ○ 배포  1/4
+```
+
+`✓` 완료(초록) · `●` 진행 중(노랑) · `○` 남음(회색) · `!` 막힘(빨강)
+
+## 설치
+
+Claude Code 에서:
+
+```
+/plugin marketplace add hyunn12/progress-band
+/plugin install progress-band@progress-band
+```
+
+이미 열려 있는 세션은 `/reload-plugins` 를 실행합니다.
+
+## 동작
+
+- mod 가 `progress` 도구(`mcp__progress-band__progress`)를 등록하고, Claude 가 단계 목록을 넘기면 입력창 위에 그립니다.
+- 그리기는 로컬에서 처리돼 토큰을 쓰지 않습니다. 토큰은 도구 호출(단계 목록 전달)에만 듭니다.
+- 빈 목록을 넘기면 줄이 사라집니다.
+
+## 자동으로 켜기
+
+Claude 는 시키지 않으면 도구를 잘 부르지 않습니다. `~/.claude/CLAUDE.md` 에 아래 한 줄을 넣으면 여러 단계 작업을 시작할 때 알아서 켭니다.
+
+```
+- 3단계 이상 작업을 시작하면 첫 도구 호출로 `mcp__progress-band__progress`(지연 로드면 ToolSearch 먼저)에 전체 단계를 넘기고, 단계가 끝날 때마다 전체 목록으로 다시 호출, 끝나면 빈 목록을 넘긴다.
+```
+
+특정 스킬에서만 켜고 싶으면 그 스킬의 진행 절에 같은 문장을 넣습니다.
+
+## 라이선스
+
+MIT

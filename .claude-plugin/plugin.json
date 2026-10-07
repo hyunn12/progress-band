@@ -1,0 +1,11 @@
+{
+  "name": "progress-band",
+  "version": "0.1.0",
+  "description": "Show the session's task steps above the prompt",
+  "types": "./types/index.d.ts",
+  "author": {
+    "name": "hyunn12"
+  },
+  "repository": "https://github.com/hyunn12/progress-band",
+  "license": "MIT"
+}
