@@ -93,10 +93,15 @@ export const register: Register = on => {
   on('turn.complete', async ($, e, next) => {
     const result = await next(e)
     if (e.agentId) {
-      const agent = (await $.agent.list()).find(a => a.id === e.agentId)
+      const agent = await $.agent
+        .list()
+        .then(list => list.find(a => a.id === e.agentId))
+        .catch(() => undefined)
       const name = agent?.description || agent?.type || 'subagent'
       const sec = Math.round(e.durationMs / 1000)
-      $.ui.toast(`${e.isAborted ? '✗' : '✓'} ${name} 완료 · ${sec < 60 ? `${sec}s` : `${Math.round(sec / 60)}m`}`)
+      const line = `${e.isAborted ? '✗' : '✓'} ${name} 완료 · ${sec < 60 ? `${sec}s` : `${Math.round(sec / 60)}m`}`
+      $.ui.toast(line)
+      $.ui.log(line)
     }
     return result
   })
